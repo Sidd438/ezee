@@ -1,5 +1,7 @@
 use std::net::TcpListener;
 use std::io::Read;
+use crate::http::Request;
+use std::convert::TryFrom;
 
 pub struct Server {
     addr: String,
@@ -21,7 +23,8 @@ impl Server {
                     let mut buffer = [0; 1024];
                     match stream.read(&mut buffer) {
                         Ok(_) => {
-                            println!("Recieved a request: {}", String::from_utf8_lossy(&buffer))
+                            println!("Recieved a request: {}", String::from_utf8_lossy(&buffer));
+                            Request::try_from(&buffer);
                         }
                         Err(e) => println!("Failed to Establish connection: {}", e) 
                     }
