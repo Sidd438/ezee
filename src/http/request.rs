@@ -19,8 +19,29 @@ impl TryFrom<&[u8]> for Request {
     fn try_from(buf: &[u8]) -> Result<Self, Self::Error> {
 
         let request = str::from_utf8(buf)?;
+        let (method, request) = gen_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (path, request) = gen_next_word(request).ok_or(ParseError::InvalidRequest)?;
+        let (protocol, _) = gen_next_word(request).ok_or(ParseError::InvalidRequest)?;
+
+        if protocol != "HTTP/1.1"{
+            return Err(ParseError::InvalidProtocol)
+        }
+
+        let method : METHOD = method.parse()?
+
+
     }
 }
+
+fn gen_next_word(request: &str) -> Option<(&str, &str)> {
+    for (i, c) in request.chars().enumerate() {
+        if c == ' ' || c == '\r' {
+            return Some((&request[..i], &request[i+1..]));
+        }
+    }
+    None
+}
+
 
 pub enum ParseError {
     InvalidEncoding,
@@ -32,10 +53,10 @@ pub enum ParseError {
 impl ParseError {
     fn message(&self) -> &str {
         match self {
-            self::InvalidEncoding => "Invalid Encoding",
-            self::InvalidRequest => "Invalid Request",
-            self::InvalidProtocol => "Invalid Protocol",
-            self::InvalidMethod => "Invalid Method",
+            Self::InvalidEncoding => "Invalid Encoding",
+            Self::InvalidRequest => "Invalid Request",
+            Self::InvalidProtocol => "Invalid Protocol",
+            Self::InvalidMethod => "Invalid Method",
         }
     }
 }
@@ -55,6 +76,12 @@ impl Debug for ParseError {
 impl From<Utf8Error> for ParseError {
     fn from(_: Utf8Error) -> Self {
         ParseError::InvalidEncoding
+    }
+}
+
+impl From<MethodError> for ParseError {
+    fn from(_: MethodError) -> Self {
+        ParseError::InvalidMethod
     }
 }
 

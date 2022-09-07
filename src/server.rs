@@ -24,7 +24,7 @@ impl Server {
                     match stream.read(&mut buffer) {
                         Ok(_) => {
                             println!("Recieved a request: {}", String::from_utf8_lossy(&buffer));
-                            Request::try_from(&buffer);
+                            Request::try_from(&buffer[..]);
                         }
                         Err(e) => println!("Failed to Establish connection: {}", e) 
                     }
